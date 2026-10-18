@@ -57,7 +57,14 @@ NEW_GUIDE_SLUGS = {
 for _cls, _slug in NEW_GUIDE_SLUGS.items():
     if _cls in SLUGS:
         SLUGS[_cls] = _slug
-SUPPORTED_CROPS = sorted({c for c in CROPS.values() if c})
+# Photo check sirf us fasal ki jis ke model mein "healthy" aur kam az kam 2 bimariyan hon.
+# (Jaise v2 model mein bhindi ki sirf 1 class bachi: us ka jawab hamesha wahi hota, is liye band.)
+_crop_classes = defaultdict(list)
+for _cls, _crop in CROPS.items():
+    if _crop:
+        _crop_classes[_crop].append(_cls)
+SUPPORTED_CROPS = sorted(crop for crop, names in _crop_classes.items()
+                         if len(names) >= 3 and any(SLUGS.get(n) == "healthy" for n in names))
 
 # model.onnx ho to halka ONNX model (onnxruntime), warna model.pt (PyTorch). Jawab dono ka ek jaisa.
 MODEL = model_runtime.load_model(HERE, CONFIG, THREADS)
